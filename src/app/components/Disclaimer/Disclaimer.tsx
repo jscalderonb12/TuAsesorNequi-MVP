@@ -3,7 +3,7 @@ import React from 'react';
 function Disclaimer() {
   return (
     <section className="background-1 text-[#1e002b] px-6 py-14 flex justify-center items-center font-rubik min-h-[100vh]">
-      <div className="max-w-4xl mx-auto text-center space-y-6 text-start">
+      <div className="max-w-4xl mx-auto space-y-6 text-start">
         <h3 className="text-2xl sm:text-3xl font-bold">
           Esto es una simulación con datos ficticios 🧪
         </h3>
