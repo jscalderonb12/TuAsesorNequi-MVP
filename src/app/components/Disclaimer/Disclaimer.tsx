@@ -20,11 +20,11 @@ function Disclaimer() {
           comportamiento del asistente conversacional.
         </p>
 
-        <div className="bg-white text-[#1e002b] rounded-xl px-5 py-4 font-medium shadow-md inline-block">
-          Lo que ves no es tu plata real, pero la lógica que interpreta los
-          movimientos
-          <b> sí lo es</b>.
-        </div>
+        <p className="bg-white text-[#1e002b] rounded-xl px-5 py-4 font-medium shadow-md inline-block leading-relaxed text-center">
+          👇 Te invitamos a probar este prototipo funcional y a contarnos qué
+          tal te va usando el hashtag{' '}
+          <span className="text-[#a100ff] font-semibold">#LaPlataATuRitmo</span>
+        </p>
       </div>
     </section>
   );

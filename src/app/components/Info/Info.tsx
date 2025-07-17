@@ -15,14 +15,14 @@ export default function InfoPanel() {
   ];
 
   return (
-    <section className="shadow-info w-[90%] h-[600px] second-background from-purple-950 via-purple-900 to-fuchsia-900 py-[20px] text-white rounded-[20px] shadow-lg flex items-centers">
+    <section className="shadow-info w-full max-w-[90%] mx-auto min-h-[600px] second-background from-purple-950 via-purple-900 to-fuchsia-900 py-[20px] px-4 text-white rounded-[20px] shadow-lg flex items-center">
       <div>
         <h2 className="text-2xl font-bold text-center mb-6">
           ¿Qué puedes hacer con TuAsesorNequi?
         </h2>
         <div className="mb-10">
           <h3 className="text-lg font-semibold text-center mb-4 text-fuchsia-200">
-            Ejemplos que puedes escribir
+            Ejemplos de lo que le puedes escribir
           </h3>
           <div className="flex flex-wrap justify-center gap-2">
             {prompts.map((p, i) => (
