@@ -1,112 +1,177 @@
 import { buildOperationsContext } from '@/core/infraestructure/datasources/FinancialOperations';
+import { ConversationMessage } from '@/core/domain/types';
 
-export const analyzeIntentPrompt = (userMessage: string) => {
-  const operationsContext = buildOperationsContext();
-  const today = new Date();
-  const currentYear = today.getFullYear();
-  const currentDateISO = today.toISOString().split('T')[0];
+const buildContext = (history: ConversationMessage[]): string => {
+  if (history.length === 0) return '';
+
+  const recent = history.slice(-3);
+  const lines = recent.map((msg) => {
+    if (msg.operation) {
+      return `Usuario: "${msg.userMessage}" → ${msg.operation}`;
+    }
+    return `Usuario: "${msg.userMessage}" → conversación`;
+  });
+
+  return `\nCONVERSACIÓN RECIENTE:\n${lines.join('\n')}\n`;
+};
+
+const getContextDates = (history: ConversationMessage[]) => {
+  const lastFinancial = history
+    .slice()
+    .reverse()
+    .find((msg) => msg.params);
+  return lastFinancial?.params || null;
+};
+
+export const analyzeIntentPrompt = (
+  userMessage: string,
+  history: ConversationMessage[] = []
+) => {
+  const operations = buildOperationsContext();
+  const context = buildContext(history);
+  const contextDates = getContextDates(history);
+  const today = new Date().toISOString().split('T')[0];
 
   return `
-Eres un asistente que interpreta mensajes de usuarios sobre sus finanzas y los convierte en una operación válida del siguiente catálogo:
+Convierte este mensaje en una operación financiera válida:
 
 OPERACIONES DISPONIBLES:
-${operationsContext}
+${operations}
 
-FECHA DE REFERENCIA:
-- Hoy es ${currentDateISO}. Usa esta fecha como referencia si el mensaje contiene expresiones relativas como “ayer”, “el mes pasado”, etc.
+${context}
 
-INSTRUCCIONES:
-1. Si el mensaje del usuario NO tiene una intención financiera clara (por ejemplo: "hola", "ayuda", "¿qué puedes hacer?"), responde exclusivamente con: null
-2. Si SÍ tiene una intención financiera clara, responde con un objeto JSON **exactamente** en este formato:
-
+REGLAS:
+1. Si NO es una consulta financiera (saludos, preguntas personales, etc.) → responde: null
+2. Si SÍ es financiera → responde JSON:
 {
-  "operation": "nombreExactoDeLaOperacion",
+  "operation": "nombreOperacion",
   "params": {
     "startDate": "YYYY-MM-DD",
     "endDate": "YYYY-MM-DD"
   }
 }
 
-3. No expliques nada. No agregues texto extra. No uses comillas externas. No uses bloques de código.
+CONTEXTO ESPECIAL:
+- Hoy: ${today}
+- ${
+    contextDates
+      ? `Última consulta: ${contextDates.startDate} a ${contextDates.endDate}`
+      : 'Sin contexto previo'
+  }
+- Si dice "detalles", "más info", etc. y hay contexto → usa getTransactionDetails con fechas del contexto
 
-SOBRE LAS FECHAS:
-- Si el usuario menciona un mes sin indicar el año (ej. “gastos de mayo”), **asume que se refiere al año actual (${currentYear})**.
-- Si dice “el mes pasado”, usa como referencia la fecha actual (${currentDateISO}) para calcular el primer y último día del mes anterior.
-- Si dice “ayer”, usa el día anterior a la fecha actual.
-- Si dice “esta semana”, devuelve las fechas de lunes a domingo de esta semana.
-- Si dice “la quincena pasada”, interpreta como los últimos 15 días anteriores a hoy.
-
-MENSAJE DEL USUARIO:
-"${userMessage}"
-  `.trim();
-};
-
-export const fallbackPrompt = (userMessage: string) => {
-  return `
-El mensaje del usuario no pudo convertirse en una operación financiera válida.
-
-MENSAJE DEL USUARIO:
-"${userMessage}"
-
-Instrucciones para la respuesta:
-
-- Si el mensaje es un saludo o una frase amable, responde saludando de forma natural. Ejemplo: “¡Hola! ¿Sobre qué aspecto de tus finanzas quieres que hablemos?”
-- Si el usuario pregunta quién eres, qué haces o qué puede hacer esta herramienta, responde brevemente lo siguiente:
-  - “Soy Tu Asesor Nequi, una herramienta de inteligencia artificial diseñada para ayudarte a entender y gestionar tus finanzas de forma sencilla.”
-  - “Puedo mostrarte tus gastos por categoría, darte un resumen financiero, decirte cuánto gastaste en un mes específico o ayudarte a entender tus movimientos.”
-- Si el mensaje es ambiguo o poco claro, sugiere que sea más específico.
-- Puedes dar ejemplos como:
-  - “¿Quieres ver cuánto gastaste esta semana?”
-  - “¿Necesitas un resumen del último mes?”
-- Evita frases genéricas como “Veo que necesitas ayuda” y no des datos curiosos.
-- Tu respuesta debe ser breve, clara y cercana, como si estuvieras chateando.
-
-Solo responde con texto plano, sin comillas, sin bloques de código ni formato especial.
+MENSAJE: "${userMessage}"
 `.trim();
 };
 
-export const explanationPrompt = (userMessage: string, result: string) => {
-  return `
-Actúa como un asesor financiero conversacional.
-
-MENSAJE DEL USUARIO:
-"${userMessage}"
-
-RESULTADO:
-${result}
-
-INSTRUCCIONES:
-1. Explica los datos de forma clara, breve y en español natural.
-2. Si hay montos, preséntalos de forma legible: “Gastaste $250.000 en total”.
-3. Si vas a listar categorías o puntos, usa guiones o viñetas (por ejemplo: "• Shopping ($75.000): podrías reducir compras impulsivas").
-4. Evita usar Markdown como **negrillas**, asteriscos o bloques de código.
-5. Si no hay resultados relevantes, solo di que no se encontraron datos. No inventes ni expliques por qué.
-6. Si el usuario hace un comentario adicional o busca consejo, puedes responder brevemente, pero mantén el foco en los datos.
-
-No repitas el mensaje del usuario ni expliques cómo funciona el sistema. Habla directo al usuario como en una conversación profesional.
-`.trim();
-};
-
-export const explanationFollowupPrompt = (
+export const explanationPrompt = (
   userMessage: string,
-  lastResult: any,
-  lastOperation: string
-) =>
-  `
-Estás en una conversación con un usuario sobre sus finanzas.
+  result: any,
+  history: ConversationMessage[] = []
+) => {
+  const context = buildContext(history);
 
-La última operación fue: "${lastOperation}"  
-Resultado anterior:
-${JSON.stringify(lastResult, null, 2)}
+  return `
+Explica estos datos financieros de forma natural y bien organizada:
 
-MENSAJE DEL USUARIO:
-"${userMessage}"
+${context}
 
-Instrucciones:
-- Si el nuevo mensaje es un saludo o no tiene relación directa con el resultado anterior, responde de forma natural y amigable, sin repetir ni extender el contexto anterior.
-- Si el usuario hace una pregunta relacionada con los datos anteriores, responde brevemente y con claridad.
-- Evita extenderte o repetir los mismos datos si no se te pide.
-- Usa un tono cálido y conversacional.
+DATOS:
+${JSON.stringify(result, null, 2)}
 
-No expliques cómo funciona el sistema ni repitas el mensaje del usuario.
+MENSAJE USUARIO: "${userMessage}"
+
+INSTRUCCIONES DE FORMATO:
+📊 ESTRUCTURA DE RESPUESTA:
+- Usa espacios en blanco para separar secciones
+- Agrupa información relacionada
+- Presenta datos de forma clara y visual
+
+💰 FORMATO DE MONTOS:
+- Montos legibles: "$250.000" (con puntos como separadores)
+- Usa emojis relevantes: 💸 para gastos, 💰 para ingresos, 📈 para totales
+
+📝 ORGANIZACIÓN:
+- Títulos con emojis: "💸 Gastos del período"
+- Listas con viñetas: "• Categoría ($monto)"
+- Separa cada categoría o sección con líneas en blanco
+- Usa emojis contextuales: 🏪 comercio, 🍕 comida, ⛽ transporte, 🏠 hogar
+
+🎯 ESTRUCTURA SUGERIDA:
+1. Resumen general con emoji principal
+2. [Línea en blanco]
+3. Detalles por categoría/período
+4. [Línea en blanco]
+5. Conclusión o recomendación
+
+REGLAS GENERALES:
+- Si no hay datos, di que no se encontraron con emoji 🔍
+- Tono profesional pero cercano
+- Respuesta clara y directa en español
+- Usa emojis para hacer la respuesta más visual y amigable
+
+EJEMPLOS DE EMOJIS POR CONTEXTO:
+- Gastos: 💸 📉 🛒
+- Ingresos: 💰 📈 💵
+- Categorías: 🍕🏪🚗⛽🏠📱💊🎓
+- Análisis: 📊 📈 📉 🔍 💡
+- Alertas: ⚠️ 🚨 ⚡
+- Éxito: ✅ 🎉 👍
 `.trim();
+};
+
+export const conversationalPrompt = (
+  userMessage: string,
+  history: ConversationMessage[] = []
+) => {
+  const context = buildContext(history);
+
+  return `
+Responde de forma conversacional sobre finanzas con buen formato:
+
+${context}
+
+MENSAJE: "${userMessage}"
+
+INSTRUCCIONES DE RESPUESTA:
+🤖 IDENTIDAD Y SALUDOS:
+- Si es saludo → saluda naturalmente con emoji 👋
+- Si pregunta qué eres → "Soy Tu Asesor Nequi 🏦, te ayudo con tus finanzas personales"
+- Si pide ayuda → explica qué puedes hacer brevemente con emojis
+
+📋 FORMATO DE RESPUESTA:
+- Usa espacios en blanco para separar ideas
+- Incluye emojis relevantes para hacer la respuesta más amigable
+- Estructura clara con separación entre conceptos
+- Tono amigable y profesional
+
+🔍 MANEJO DE CONSULTAS:
+- Si es ambiguo → pide que sea más específico con emoji 🤔
+- Si no entiendes → usa emoji ❓ y pide clarificación
+- Respuesta breve pero completa
+
+📱 EMOJIS PARA DIFERENTES SITUACIONES:
+- Saludo: 👋 😊
+- Ayuda: 🤝 💡 📊
+- Consultas: 🔍 📈 💰
+- Confusión: 🤔 ❓
+- Despedida: 👋 😊
+
+EJEMPLOS DE AYUDA CON FORMATO:
+💡 "Te puedo ayudar con consultas como:"
+
+🔍 "¿Cuánto gasté esta semana?"
+📊 "Dame un resumen del mes pasado"  
+📈 "Muestra mis gastos por categoría"
+💰 "¿Cuáles fueron mis ingresos este mes?"
+
+[Línea en blanco]
+
+"¿En qué te puedo ayudar hoy? 😊"
+
+REGLAS GENERALES:
+- Respuesta breve pero útil
+- Usa emojis para hacer la conversación más cálida
+- Separa conceptos con espacios en blanco
+`.trim();
+};

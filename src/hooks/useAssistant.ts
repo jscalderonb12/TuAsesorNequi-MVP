@@ -24,7 +24,11 @@ export const useAssistant = () => {
     } catch (err: any) {
       setHistory((prev) => [
         ...prev,
-        { role: 'bot', message: 'Hubo un error procesando tu mensaje.' },
+        {
+          role: 'bot',
+          message:
+            '😬 Algo inesperado ocurrió procesando tu consulta. Te agradezco si lo intentas nuevamente.',
+        },
       ]);
     } finally {
       setLoading(false);

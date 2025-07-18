@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAssistant } from '@/hooks/useAssistant';
+import ReactMarkdown from 'react-markdown';
 import './styles.css';
 
 export default function TuAsesorNequiChat() {
@@ -13,14 +14,15 @@ export default function TuAsesorNequiChat() {
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!input.trim()) return;
-    await sendMessage(input);
     setInput('');
+    await sendMessage(input);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
+      setInput('');
     }
   };
 
@@ -51,7 +53,7 @@ export default function TuAsesorNequiChat() {
       <div className="chat-box" ref={chatRef}>
         {history.map((entry, idx) => (
           <div key={idx} className={`message ${entry.role}`}>
-            {entry.message}
+            <ReactMarkdown>{entry.message}</ReactMarkdown>
           </div>
         ))}
         {loading && <div className="message bot">✍️ Cargando...</div>}

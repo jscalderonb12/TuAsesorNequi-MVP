@@ -291,7 +291,7 @@ export const fakeTransactions = [
     category: 'personal_transfer',
   },
 
-  // Julio (hasta el 13)
+  // Julio
   {
     date: '2025-07-01',
     description: 'NEQUI Top-Up',
@@ -329,7 +329,7 @@ export const fakeTransactions = [
   },
   {
     date: '2025-07-12',
-    description: 'Transfer to NOVIO',
+    description: 'Transfer to NOVIA',
     amount: -35000,
     type: 'transfer',
     category: 'personal_transfer',

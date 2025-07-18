@@ -4,7 +4,7 @@ import InfoForMvp from '@/app/components/Info/Info';
 
 const Demo = () => {
   return (
-    <div className="flex flex-col md:flex-row gap-y-6 md:gap-y-0 main-background pt-15 pb-15">
+    <div className="flex flex-col md:flex-row gap-y-6 md:gap-y-0 main-background pt-15 pb-15 min-h-[100vh]">
       <div className="flex-1 flex justify-center items-center order-2 md:order-1">
         <PhoneFrame>
           <TuAsesorNequiChat />

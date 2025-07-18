@@ -17,9 +17,18 @@ export const FinancialOperationSchema = z.object({
 
 export type FinancialQuery = z.infer<typeof FinancialOperationSchema>;
 
+export interface ConversationMessage {
+  userMessage: string;
+  operation?: string;
+  params?: any;
+  result?: any;
+  timestamp: Date;
+}
+
 export interface ConversationContext {
   lastQuery: string;
   lastOperation?: string;
-  lastParams?: Record<string, any>;
+  lastParams?: any;
   lastResult?: any;
+  conversationHistory: ConversationMessage[];
 }
