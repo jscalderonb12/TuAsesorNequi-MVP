@@ -13,7 +13,7 @@ export default function Header() {
           Tu asistente financiero al estilo Nequi 💜
         </div>
 
-        <div className="header-badge bg-purple-100 text-purple-800 px-3 py-1 rounded text-sm md:text-base">
+        <div className="header-badge bg-purple-100 text-purple-800 px-3 py-1 rounded text-lg md:text-xl animate__animated animate__pulse animate__infinite">
           Demo interactiva
         </div>
       </div>

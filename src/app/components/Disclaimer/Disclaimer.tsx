@@ -21,9 +21,12 @@ function Disclaimer() {
         </p>
 
         <p className="bg-white text-[#1e002b] rounded-xl px-5 py-4 font-medium shadow-md inline-block leading-relaxed text-center">
-          👇 Te invitamos a probar este prototipo funcional y a contarnos qué
-          tal te va usando el hashtag{' '}
+          Te invitamos a probar este prototipo funcional y a contarnos qué tal
+          te va usando el hashtag{' '}
           <span className="text-[#a100ff] font-semibold">#LaPlataATuRitmo</span>
+          <p className="animate__animated animate__heartBeat animate__infinite">
+            👇
+          </p>
         </p>
       </div>
     </section>

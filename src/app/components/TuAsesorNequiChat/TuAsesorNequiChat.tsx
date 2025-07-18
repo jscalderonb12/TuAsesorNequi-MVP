@@ -58,7 +58,14 @@ export default function TuAsesorNequiChat() {
         ))}
         {loading && <div className="message bot">✍️ Cargando...</div>}
       </div>
-      <form onSubmit={handleSubmit} className="chat-input-wrapper">
+      <form
+        onSubmit={handleSubmit}
+        className={
+          input.length === 0
+            ? 'chat-input-wrapper animate__animated animate__pulse animate__infinite animate_slow'
+            : 'chat-input-wrapper'
+        }
+      >
         <textarea
           ref={textareaRef}
           className="chat-textarea"
