@@ -99,9 +99,9 @@ INSTRUCCIONES DE FORMATO:
 
 🎯 ESTRUCTURA SUGERIDA:
 1. Resumen general con emoji principal
-2. [Línea en blanco]
+2. \n
 3. Detalles por categoría/período
-4. [Línea en blanco]
+4. \n
 5. Conclusión o recomendación
 
 REGLAS GENERALES:
@@ -165,7 +165,7 @@ EJEMPLOS DE AYUDA CON FORMATO:
 📈 "Muestra mis gastos por categoría"
 💰 "¿Cuáles fueron mis ingresos este mes?"
 
-[Línea en blanco]
+ \n
 
 "¿En qué te puedo ayudar hoy? 😊"
 
